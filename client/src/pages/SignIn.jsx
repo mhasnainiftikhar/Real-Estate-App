@@ -1,15 +1,18 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { signInStart, signInSucess, signInFailure } from "../redux/user/userSlice";
 
 function SignIn() {
+  const { loading, error } = useSelector((state) => state.user);
+  
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
 
   // Handle input changes
   const handleChange = (e) => {
@@ -23,8 +26,7 @@ function SignIn() {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setMessage("");
+    dispatch(signInStart()); 
 
     try {
       const res = await fetch("/api/auth/signin", {
@@ -38,15 +40,13 @@ function SignIn() {
       const data = await res.json();
 
       if (res.ok) {
-        setMessage("Sign-in successful!");
-        setTimeout(() => navigate("/"), 2000);
+        dispatch(signInSucess(data)); 
+        navigate("/");
       } else {
-        setMessage(data.message || "Sign-in failed. Please try again.");
+        dispatch(signInFailure(data.message || "Sign-in failed. Please try again."));
       }
     } catch (error) {
-      setMessage("Network error. Please check your connection.");
-    } finally {
-      setLoading(false);
+      dispatch(signInFailure("Network error. Please check your connection."));
     }
   };
 
@@ -57,15 +57,7 @@ function SignIn() {
           Sign In
         </h1>
 
-        {message && (
-          <p
-            className={`text-center mb-4 text-sm ${
-              message.includes("successful") ? "text-green-600" : "text-red-600"
-            }`}
-          >
-            {message}
-          </p>
-        )}
+        {error && <p className="text-center mb-4 text-sm text-red-600">{error}</p>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Email Field */}
@@ -103,7 +95,7 @@ function SignIn() {
           {/* Submit Button */}
           <div className="flex flex-col space-y-2">
             <button
-              className="w-full px-4 py-2 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200 uppercase"
+              className="w-full px-4 py-2 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200 uppercase disabled:bg-gray-400"
               type="submit"
               disabled={loading}
             >

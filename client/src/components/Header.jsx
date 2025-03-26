@@ -25,7 +25,7 @@ function Header() {
         <Link to='/about'>
         <li className="hidden sm:inline hover:text-blue-500 transition duration-300 cursor-pointer">About</li></Link>
         <Link to='/sign-in'> 
-        <li className="hover:text-blue-500 transition duration-300 cursor-pointer">Sign in</li></Link>
+        <li className="hover:text-blue-500 transition duration-300 cursor-pointer">SignIn</li></Link>
       </ul>
     </header>
   );
