@@ -1,9 +1,69 @@
-import React from 'react'
+import React from "react";
+import { useSelector } from "react-redux";
 
 function Profile() {
+  const { currentUser } = useSelector((state) => state.user);
+
   return (
-    <div>Profile</div>
-  )
+    <div className="max-w-lg mx-auto mt-10 p-8 bg-white shadow-xl rounded-lg">
+      <h1 className="text-center text-3xl font-bold text-blue-700 mb-8">
+        Profile
+      </h1>
+     <form className="flex flex-col items-center space-y-5">
+        {/* Profile Picture */}
+        <div className="relative">
+          <img
+            src={currentUser?.profilePic || "https://via.placeholder.com/150"}
+            alt="Profile"
+            className="w-32 h-32 object-cover rounded-full border-4 border-blue-500 shadow-md"
+            onError={(e) => (e.target.src = "https://via.placeholder.com/150")}
+          />
+        </div>
+
+        {/* Input Fields */}
+        <input
+          type="text"
+          placeholder="Username"
+          id="username"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <input
+          type="email"
+          placeholder="Email"
+          id="email"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <input
+          type="password"
+          placeholder="New Password"
+          id="password"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+
+        {/* Update Profile Button */}
+        <button
+          type="submit"
+          className="w-full py-3 bg-blue-500 text-white rounded-lg font-semibold shadow-md hover:bg-blue-600 transition duration-300"
+        >
+          Update Profile
+        </button>
+      </form>
+
+      {/* Delete & Logout Buttons */}
+      <div className="mt-6 flex flex-col space-y-3">
+        <button
+          className="w-full py-3 bg-red-500 text-white rounded-lg font-semibold shadow-md hover:bg-red-600 transition duration-300"
+        >
+          DELETE Account
+        </button>
+        <button
+          className="w-full py-3 bg-gray-400 text-white rounded-lg font-semibold shadow-md hover:bg-gray-500 transition duration-300"
+        >
+          Logout
+        </button>
+      </div>
+    </div>
+  );
 }
 
-export default Profile
+export default Profile;
