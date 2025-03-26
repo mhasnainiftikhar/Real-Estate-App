@@ -20,11 +20,11 @@ function OAuth() {
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include", // ✅ Allow cookies (JWT)
+        credentials: "include", 
         body: JSON.stringify({
           name: result.user.displayName,
           email: result.user.email,
-          googleId: result.user.uid, // ✅ Ensured correct property
+          googleId: result.user.uid, 
           photoURL: result.user.photoURL,
         }),
       });
