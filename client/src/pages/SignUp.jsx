@@ -39,7 +39,7 @@ function SignUp() {
       const data = await res.json();
 
       if (res.ok) {
-        setMessage("Signup successful! Redirecting...");
+        setMessage("Signup successful! Welcome");
         setTimeout(() => navigate("/sign-in"), 2000);
       } else {
         setMessage(data.message || "Signup failed. Please try again.");
