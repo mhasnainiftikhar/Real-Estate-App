@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
     password: { type: String },
-    profilePic: { type: String, default: "https://via.placeholder.com/150" },
+    profilePic: { type: String, default: "" }, // Stores the image URL
     role: { type: String, enum: ["user", "admin"], default: "user" },
   },
   { timestamps: true }
