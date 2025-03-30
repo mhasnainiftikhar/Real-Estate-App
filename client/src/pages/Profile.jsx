@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { useSelector } from "react-redux";
-import axios from "axios"; 
+import axios from "axios"; // ✅ Import Axios
 
 function Profile() {
   const { currentUser } = useSelector((state) => state.user);
@@ -12,29 +12,22 @@ function Profile() {
       console.error("No file selected");
       return;
     }
-  
-    if (!currentUser || !currentUser._id) {
-      console.error("User not found or not logged in");
-      return;
-    }
-  
+
     const formData = new FormData();
     formData.append("file", file);
-  
+
     try {
-      const response = await axios.post(`/api/uploads/${currentUser._id}`, formData, {
+      const response = await axios.post("/api/uploads", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-  
+
       console.log("Upload successful:", response.data);
     } catch (error) {
-      console.error("Error uploading file:", error.response?.data || error.message);
+      console.error("Error uploading file:", error);
     }
   };
-  
-  
 
   const handleProfileClick = () => {
     fileInputRef.current.click();
@@ -61,7 +54,7 @@ function Profile() {
             src={currentUser?.profilePic || "Profile"}
             alt="Profile"
             className="w-32 h-32 object-cover rounded-full border-4 border-blue-500 shadow-md cursor-pointer"
-            onClick={handleProfileClick} 
+            onClick={handleProfileClick} // Opens file selector
             onError={(e) => (e.target.src = "Profile")}
           />
 
