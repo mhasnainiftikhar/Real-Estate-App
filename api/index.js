@@ -5,6 +5,7 @@ import cors from "cors";
 import path from "path";
 import fs from "fs";
 import multer from "multer";
+import cookieParser from "cookie-parser";
 
 import authRouter from "./routes/auth.route.js";
 import userRouter from "./routes/user.route.js";
@@ -14,6 +15,7 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 app.use(cors());
+app.use(cookieParser());
 
 // Connect to MongoDB
 mongoose
