@@ -41,7 +41,7 @@ function SignIn() {
       const data = await res.json();
 
       if (res.ok) {
-        dispatch(signInSucess(data)); 
+        dispatch(signInSucess(data.user)); 
         navigate("/");
       } else {
         dispatch(signInFailure(data.message || "Sign-in failed. Please try again."));

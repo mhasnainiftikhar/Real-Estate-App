@@ -1,31 +1,31 @@
 import React, { useState, useRef } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import { deleteUserFailure, deleteUserStart, deleteUserSucess  } from "../redux/user/userSlice";
+import {
+  deleteUserFailure,
+  deleteUserStart,
+  deleteUserSucess,
+} from "../redux/user/userSlice";
 
 function Profile() {
   const { currentUser } = useSelector((state) => state.user);
+  console.log("Current User:", currentUser); 
+  
   const [file, setFile] = useState(null);
   const fileInputRef = useRef(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleUpload = async () => {
-    if (!file) {
-      console.error("No file selected");
-      return;
-    }
+    if (!file) return console.error("No file selected");
 
     const formData = new FormData();
     formData.append("file", file);
 
     try {
       const response = await axios.post("/api/uploads", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
       console.log("Upload successful:", response.data);
@@ -41,10 +41,11 @@ function Profile() {
   const handleDeleteUser = async () => {
     try {
       dispatch(deleteUserStart());
-      const res = await axios.delete(`/api/users/${currentUser._id}`, {
-        method: "DELETE",
-      });
-      const data = await res.data.json();
+      const res = await axios.delete(`/api/users/delete/${currentUser.user.id}`);
+
+
+      const data = res.data;
+  
       if (data.success) {
         dispatch(deleteUserSucess());
         navigate("/");
@@ -54,6 +55,12 @@ function Profile() {
     } catch (error) {
       dispatch(deleteUserFailure(error.message || "Failed to delete user"));
     }
+  };
+  
+
+  const handleLogout = () => {
+    // TODO: Add logout logic here
+    console.log("Logout clicked");
   };
 
   return (
@@ -74,14 +81,13 @@ function Profile() {
         {/* Profile Picture Section */}
         <div className="relative flex flex-col items-center">
           <img
-            src={currentUser?.profilePic || "Profile"}
+            src={currentUser?.profilePic || "/default-profile.png"}
             alt="Profile"
             className="w-32 h-32 object-cover rounded-full border-4 border-blue-500 shadow-md cursor-pointer"
-            onClick={handleProfileClick} // Opens file selector
-            onError={(e) => (e.target.src = "Profile")}
+            onClick={handleProfileClick}
+            onError={(e) => (e.target.src = "/default-profile.png")}
           />
 
-          {/* Upload Button */}
           <button
             type="button"
             onClick={handleUpload}
@@ -95,13 +101,14 @@ function Profile() {
         <input
           type="text"
           placeholder="Username"
-          defaultValue={currentUser.username}
+          defaultValue={currentUser?.username}
           id="username"
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <input
           type="email"
           placeholder="Email"
+          defaultValue={currentUser?.email}
           id="email"
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
@@ -112,7 +119,6 @@ function Profile() {
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
 
-        {/* Update Profile Button */}
         <button
           type="submit"
           className="w-full py-3 bg-blue-500 text-white rounded-lg font-semibold shadow-md hover:bg-blue-600 transition duration-300"
@@ -125,11 +131,14 @@ function Profile() {
       <div className="mt-6 flex flex-col space-y-3">
         <button
           className="w-full py-3 bg-red-500 text-white rounded-lg font-semibold shadow-md hover:bg-red-600 transition duration-300"
-          onClick={handleDeleteUser} // Function to handle account deletion
+          onClick={handleDeleteUser}
         >
           DELETE Account
         </button>
-        <button className="w-full py-3 bg-gray-400 text-white rounded-lg font-semibold shadow-md hover:bg-gray-500 transition duration-300">
+        <button
+          className="w-full py-3 bg-gray-400 text-white rounded-lg font-semibold shadow-md hover:bg-gray-500 transition duration-300"
+          onClick={handleLogout}
+        >
           Logout
         </button>
       </div>
