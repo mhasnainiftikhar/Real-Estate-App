@@ -1,11 +1,16 @@
 import React, { useState, useRef } from "react";
 import { useSelector } from "react-redux";
-import axios from "axios"; // ✅ Import Axios
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { deleteUserFailure, deleteUserStart, deleteUserSucess  } from "../redux/user/userSlice";
 
 function Profile() {
   const { currentUser } = useSelector((state) => state.user);
   const [file, setFile] = useState(null);
   const fileInputRef = useRef(null);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const handleUpload = async () => {
     if (!file) {
@@ -31,6 +36,24 @@ function Profile() {
 
   const handleProfileClick = () => {
     fileInputRef.current.click();
+  };
+
+  const handleDeleteUser = async () => {
+    try {
+      dispatch(deleteUserStart());
+      const res = await axios.delete(`/api/users/${currentUser._id}`, {
+        method: "DELETE",
+      });
+      const data = await res.data.json();
+      if (data.success) {
+        dispatch(deleteUserSucess());
+        navigate("/");
+      } else {
+        dispatch(deleteUserFailure(data.message || "Failed to delete user"));
+      }
+    } catch (error) {
+      dispatch(deleteUserFailure(error.message || "Failed to delete user"));
+    }
   };
 
   return (
@@ -72,6 +95,7 @@ function Profile() {
         <input
           type="text"
           placeholder="Username"
+          defaultValue={currentUser.username}
           id="username"
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
@@ -101,12 +125,11 @@ function Profile() {
       <div className="mt-6 flex flex-col space-y-3">
         <button
           className="w-full py-3 bg-red-500 text-white rounded-lg font-semibold shadow-md hover:bg-red-600 transition duration-300"
+          onClick={handleDeleteUser} // Function to handle account deletion
         >
           DELETE Account
         </button>
-        <button
-          className="w-full py-3 bg-gray-400 text-white rounded-lg font-semibold shadow-md hover:bg-gray-500 transition duration-300"
-        >
+        <button className="w-full py-3 bg-gray-400 text-white rounded-lg font-semibold shadow-md hover:bg-gray-500 transition duration-300">
           Logout
         </button>
       </div>
