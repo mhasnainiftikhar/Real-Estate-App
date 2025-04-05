@@ -1,149 +1,168 @@
-import React, { useState, useRef } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useRef } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import {
-  deleteUserFailure,
   deleteUserStart,
   deleteUserSucess,
-} from "../redux/user/userSlice";
+  deleteUserFailure,
+  signInSucess
+} from '../redux/user/userSlice';
 
-function Profile() {
+export default function Profile() {
   const { currentUser } = useSelector((state) => state.user);
-  console.log("Current User:", currentUser); 
-  
-  const [file, setFile] = useState(null);
-  const fileInputRef = useRef(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const handleUpload = async () => {
-    if (!file) return console.error("No file selected");
+  const [formData, setFormData] = useState({
+    username: currentUser?.username || '',
+    email: currentUser?.email || '',
+    password: '',
+    profilePic: null
+  });
 
-    const formData = new FormData();
-    formData.append("file", file);
+  const fileInputRef = useRef(null); // Reference to the file input
 
-    try {
-      const response = await axios.post("/api/uploads", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+  // Handle input change
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
 
-      console.log("Upload successful:", response.data);
-    } catch (error) {
-      console.error("Error uploading file:", error);
+  // Handle image selection
+  const handleImageChange = (e) => {
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      setFormData({ ...formData, profilePic: selectedFile });
+      handleUploadImage(selectedFile);
     }
   };
 
-  const handleProfileClick = () => {
+  // Trigger file input when profile picture is clicked
+  const handleProfilePicClick = () => {
     fileInputRef.current.click();
   };
 
-  const handleDeleteUser = async () => {
+  // Handle uploading image to the server
+  const handleUploadImage = async (file) => {
+    const formDataToSend = new FormData();
+    formDataToSend.append('profilePic', file);
+
     try {
-      dispatch(deleteUserStart());
-      const res = await axios.delete(`/api/users/delete/${currentUser.user.id}`);
-
-
-      const data = res.data;
-  
-      if (data.success) {
-        dispatch(deleteUserSucess());
-        navigate("/");
-      } else {
-        dispatch(deleteUserFailure(data.message || "Failed to delete user"));
-      }
+      const res = await axios.post(
+        `/api/users/update/${currentUser.id}`,
+        formDataToSend,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${currentUser.token}`,
+          },
+        }
+      );
+      dispatch(signInSucess({ ...currentUser, ...res.data.user }));
+      alert('Profile updated successfully');
     } catch (error) {
-      dispatch(deleteUserFailure(error.message || "Failed to delete user"));
+      console.error(error);
+      alert('Image upload failed');
     }
   };
-  
 
-  const handleLogout = () => {
-    // TODO: Add logout logic here
-    console.log("Logout clicked");
+  // Handle user update (excluding image upload)
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    const formDataToSend = new FormData();
+    formDataToSend.append('username', formData.username);
+    formDataToSend.append('email', formData.email);
+    formDataToSend.append('password', formData.password);
+
+    try {
+      const res = await axios.post(
+        `/api/users/update/${currentUser.id}`,
+        formDataToSend,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${currentUser.token}`,
+          },
+        }
+      );
+      dispatch(signInSucess({ ...currentUser, ...res.data.user }));
+      alert('Profile updated successfully');
+    } catch (error) {
+      console.error(error);
+      alert('Update failed');
+    }
+  };
+
+  // Handle user delete
+  const handleDelete = async () => {
+    try {
+      dispatch(deleteUserStart());
+      await axios.delete(`/api/users/delete/${currentUser.id}`, {
+        headers: {
+          Authorization: `Bearer ${currentUser.token}`,
+        },
+      });
+      dispatch(deleteUserSucess());
+      navigate('/');
+    } catch (error) {
+      dispatch(deleteUserFailure(error.response?.data?.message || 'Delete failed'));
+      alert('Delete failed');
+    }
   };
 
   return (
-    <div className="max-w-lg mx-auto mt-10 p-8 bg-white shadow-xl rounded-lg">
-      <h1 className="text-center text-3xl font-bold text-blue-700 mb-8">
-        Profile
-      </h1>
-
-      <form className="flex flex-col items-center space-y-5">
-        {/* Hidden File Input */}
+    <div className="p-3 max-w-lg mx-auto">
+      <h1 className="text-3xl font-semibold text-center my-7">Profile</h1>
+      <form onSubmit={handleUpdate} className="flex flex-col gap-4">
+        <img
+          src={currentUser?.profilePic || '/default-profile.png'}
+          alt="profile"
+          className="rounded-full h-24 w-24 object-cover cursor-pointer self-center mt-2"
+          onClick={handleProfilePicClick} 
+        />
+        {/* Hidden file input */}
         <input
           type="file"
           ref={fileInputRef}
-          onChange={(e) => setFile(e.target.files[0])}
-          className="hidden"
+          onChange={handleImageChange} 
+          style={{ display: 'none' }} 
         />
-
-        {/* Profile Picture Section */}
-        <div className="relative flex flex-col items-center">
-          <img
-            src={currentUser?.profilePic || "/default-profile.png"}
-            alt="Profile"
-            className="w-32 h-32 object-cover rounded-full border-4 border-blue-500 shadow-md cursor-pointer"
-            onClick={handleProfileClick}
-            onError={(e) => (e.target.src = "/default-profile.png")}
-          />
-
-          <button
-            type="button"
-            onClick={handleUpload}
-            className="mt-3 px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition duration-300"
-          >
-            Upload
-          </button>
-        </div>
-
-        {/* Input Fields */}
         <input
           type="text"
-          placeholder="Username"
-          defaultValue={currentUser?.username}
           id="username"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={formData.username}
+          onChange={handleChange}
+          className="border p-3 rounded-lg"
+          placeholder="Username"
         />
         <input
           type="email"
-          placeholder="Email"
-          defaultValue={currentUser?.email}
           id="email"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={formData.email}
+          onChange={handleChange}
+          className="border p-3 rounded-lg"
+          placeholder="Email"
         />
         <input
           type="password"
-          placeholder="New Password"
           id="password"
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={formData.password}
+          onChange={handleChange}
+          className="border p-3 rounded-lg"
+          placeholder="New Password"
         />
-
-        <button
-          type="submit"
-          className="w-full py-3 bg-blue-500 text-white rounded-lg font-semibold shadow-md hover:bg-blue-600 transition duration-300"
-        >
-          Update Profile
+        <button className="bg-blue-700 text-white rounded-lg p-3 uppercase hover:opacity-95">
+          Update
         </button>
       </form>
-
-      {/* Delete & Logout Buttons */}
-      <div className="mt-6 flex flex-col space-y-3">
-        <button
-          className="w-full py-3 bg-red-500 text-white rounded-lg font-semibold shadow-md hover:bg-red-600 transition duration-300"
-          onClick={handleDeleteUser}
-        >
-          DELETE Account
-        </button>
-        <button
-          className="w-full py-3 bg-gray-400 text-white rounded-lg font-semibold shadow-md hover:bg-gray-500 transition duration-300"
-          onClick={handleLogout}
-        >
-          Logout
-        </button>
+      <div className="flex justify-between mt-5">
+        <span className="text-red-700 cursor-pointer" onClick={handleDelete}>
+          Delete account
+        </span>
+        <span className="text-red-700 cursor-pointer" onClick={() => navigate('/')}>
+          Sign out
+        </span>
       </div>
     </div>
   );
 }
-
-export default Profile;
