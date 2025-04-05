@@ -134,3 +134,16 @@ export const google = async (req, res, next) => {
     next(errorHandler(500, error.message));
   }
 };
+
+
+// Signout Controller
+export const signout = async (req, res, next) => {
+  try {
+    res
+      .clearCookie("access_token")
+      .status(200)
+      .json({ success: true, message: "Signout successful" });
+  } catch (error) {
+    next(errorHandler(500, error.message));
+  }
+};

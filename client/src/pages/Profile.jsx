@@ -1,13 +1,14 @@
-import React, { useState, useRef } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import React, { useState, useRef } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import {
   deleteUserStart,
   deleteUserSucess,
   deleteUserFailure,
-  signInSucess
-} from '../redux/user/userSlice';
+  signInSucess,
+  signOutStart,
+} from "../redux/user/userSlice";
 
 export default function Profile() {
   const { currentUser } = useSelector((state) => state.user);
@@ -15,10 +16,10 @@ export default function Profile() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    username: currentUser?.username || '',
-    email: currentUser?.email || '',
-    password: '',
-    profilePic: null
+    username: currentUser?.username || "",
+    email: currentUser?.email || "",
+    password: "",
+    profilePic: null,
   });
 
   const fileInputRef = useRef(null); // Reference to the file input
@@ -37,7 +38,6 @@ export default function Profile() {
     }
   };
 
-  // Trigger file input when profile picture is clicked
   const handleProfilePicClick = () => {
     fileInputRef.current.click();
   };
@@ -45,7 +45,7 @@ export default function Profile() {
   // Handle uploading image to the server
   const handleUploadImage = async (file) => {
     const formDataToSend = new FormData();
-    formDataToSend.append('profilePic', file);
+    formDataToSend.append("profilePic", file);
 
     try {
       const res = await axios.post(
@@ -53,16 +53,16 @@ export default function Profile() {
         formDataToSend,
         {
           headers: {
-            'Content-Type': 'multipart/form-data',
+            "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${currentUser.token}`,
           },
         }
       );
       dispatch(signInSucess({ ...currentUser, ...res.data.user }));
-      alert('Profile updated successfully');
+      alert("Profile updated successfully");
     } catch (error) {
       console.error(error);
-      alert('Image upload failed');
+      alert("Image upload failed");
     }
   };
 
@@ -70,9 +70,9 @@ export default function Profile() {
   const handleUpdate = async (e) => {
     e.preventDefault();
     const formDataToSend = new FormData();
-    formDataToSend.append('username', formData.username);
-    formDataToSend.append('email', formData.email);
-    formDataToSend.append('password', formData.password);
+    formDataToSend.append("username", formData.username);
+    formDataToSend.append("email", formData.email);
+    formDataToSend.append("password", formData.password);
 
     try {
       const res = await axios.post(
@@ -80,16 +80,16 @@ export default function Profile() {
         formDataToSend,
         {
           headers: {
-            'Content-Type': 'multipart/form-data',
+            "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${currentUser.token}`,
           },
         }
       );
       dispatch(signInSucess({ ...currentUser, ...res.data.user }));
-      alert('Profile updated successfully');
+      alert("Profile updated successfully");
     } catch (error) {
       console.error(error);
-      alert('Update failed');
+      alert("Update failed");
     }
   };
 
@@ -103,10 +103,28 @@ export default function Profile() {
         },
       });
       dispatch(deleteUserSucess());
-      navigate('/');
+      navigate("/");
     } catch (error) {
-      dispatch(deleteUserFailure(error.response?.data?.message || 'Delete failed'));
-      alert('Delete failed');
+      dispatch(
+        deleteUserFailure(error.response?.data?.message || "Delete failed")
+      );
+      alert("Delete failed");
+    }
+  };
+  // Handle user sign out
+  const handleSignOut = async () => {
+   try {
+      dispatch(signOutStart());
+      await axios.get("/api/auth/signout", {
+        headers: {
+          Authorization: `Bearer ${currentUser.token}`,
+        },
+      });
+      dispatch(signInSucess(null));
+      navigate("/");
+    } catch (error) {
+      dispatch(signOutStart(error.response?.data?.message || "Sign out failed"));
+      alert("Sign out failed");
     }
   };
 
@@ -115,17 +133,17 @@ export default function Profile() {
       <h1 className="text-3xl font-semibold text-center my-7">Profile</h1>
       <form onSubmit={handleUpdate} className="flex flex-col gap-4">
         <img
-          src={currentUser?.profilePic || '/default-profile.png'}
+          src={currentUser?.profilePic || "/default-profile.png"}
           alt="profile"
           className="rounded-full h-24 w-24 object-cover cursor-pointer self-center mt-2"
-          onClick={handleProfilePicClick} 
+          onClick={handleProfilePicClick}
         />
         {/* Hidden file input */}
         <input
           type="file"
           ref={fileInputRef}
-          onChange={handleImageChange} 
-          style={{ display: 'none' }} 
+          onChange={handleImageChange}
+          style={{ display: "none" }}
         />
         <input
           type="text"
@@ -159,7 +177,7 @@ export default function Profile() {
         <span className="text-red-700 cursor-pointer" onClick={handleDelete}>
           Delete account
         </span>
-        <span className="text-red-700 cursor-pointer" onClick={() => navigate('/')}>
+        <span className="text-red-700 cursor-pointer" onClick={handleSignOut}>
           Sign out
         </span>
       </div>
