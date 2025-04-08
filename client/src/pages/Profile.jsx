@@ -9,6 +9,7 @@ import {
   signInSucess,
   signOutStart,
 } from "../redux/user/userSlice";
+import { Link } from "react-router-dom";
 
 export default function Profile() {
   const { currentUser } = useSelector((state) => state.user);
@@ -113,7 +114,7 @@ export default function Profile() {
   };
   // Handle user sign out
   const handleSignOut = async () => {
-   try {
+    try {
       dispatch(signOutStart());
       await axios.get("/api/auth/signout", {
         headers: {
@@ -123,7 +124,9 @@ export default function Profile() {
       dispatch(signInSucess(null));
       navigate("/");
     } catch (error) {
-      dispatch(signOutStart(error.response?.data?.message || "Sign out failed"));
+      dispatch(
+        signOutStart(error.response?.data?.message || "Sign out failed")
+      );
       alert("Sign out failed");
     }
   };
@@ -172,6 +175,12 @@ export default function Profile() {
         <button className="bg-blue-700 text-white rounded-lg p-3 uppercase hover:opacity-95">
           Update
         </button>
+        <Link
+          to={"/create-listing"}
+          className="bg-green-700 text-center text-white rounded-lg p-3 uppercase hover:opacity-95"
+        >
+          Create Listing
+        </Link>
       </form>
       <div className="flex justify-between mt-5">
         <span className="text-red-700 cursor-pointer" onClick={handleDelete}>
