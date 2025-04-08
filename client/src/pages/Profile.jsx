@@ -49,7 +49,7 @@ export default function Profile() {
 
     try {
       const res = await axios.post(
-        `/api/users/update/${currentUser.id}`,
+        `/api/user/update/${currentUser.id}`,
         formDataToSend,
         {
           headers: {
@@ -76,7 +76,7 @@ export default function Profile() {
 
     try {
       const res = await axios.post(
-        `/api/users/update/${currentUser.id}`,
+        `/api/user/update/${currentUser.id}`,
         formDataToSend,
         {
           headers: {
@@ -97,7 +97,7 @@ export default function Profile() {
   const handleDelete = async () => {
     try {
       dispatch(deleteUserStart());
-      await axios.delete(`/api/users/delete/${currentUser.id}`, {
+      await axios.delete(`/api/user/delete/${currentUser.id}`, {
         headers: {
           Authorization: `Bearer ${currentUser.token}`,
         },

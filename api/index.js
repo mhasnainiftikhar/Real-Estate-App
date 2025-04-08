@@ -6,9 +6,9 @@ import path from "path";
 import fs from "fs";
 import multer from "multer";
 import cookieParser from "cookie-parser";
-
 import authRouter from "./routes/auth.route.js";
 import userRouter from "./routes/user.route.js";
+import listingRouter from "./routes/listing.route.js";
 
 dotenv.config();
 
@@ -46,6 +46,7 @@ const upload = multer({ storage });
 // Routes
 app.use("/api/user", userRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/listing", listingRouter);
 
 // File upload route
 app.post("/api/uploads", upload.single("file"), (req, res) => {
