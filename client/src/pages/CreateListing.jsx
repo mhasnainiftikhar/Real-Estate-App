@@ -104,42 +104,44 @@ function CreateListing() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (imageUrls.length === 0) {
       setError("Please upload at least one image");
       return;
     }
-
+  
     if (formData.regularPrice <= 0) {
       setError("Regular price must be greater than 0");
       return;
     }
-
+  
     if (formData.offer && formData.discountedPrice >= formData.regularPrice) {
       setError("Discounted price must be less than regular price");
       return;
     }
-
+  
     setLoading(true);
     setError("");
-
+  
     try {
       const listingData = {
         ...formData,
         imageUrls: imageUrls,
-        userRef: currentUser.id, // Add user reference
-        // Make sure we're using the backend field names correctly
+        userRef: currentUser.id,
         regularPrice: formData.regularPrice,
         discountedPrice: formData.discountedPrice,
       };
-
+  
       const response = await axios.post("/api/listing/create", listingData, {
         withCredentials: true,
       });
-
+  
+      // ✅ Correctly extract the listing from response
+      const createdListing = response.data.listing;
+  
       setSuccess(true);
       setLoading(false);
-
+  
       // Reset form after submission
       setFormData({
         name: "",
@@ -155,11 +157,9 @@ function CreateListing() {
         discountedPrice: 0,
       });
       setImageUrls([]);
-
-      // Navigate after a short delay to show success message
-      setTimeout(() => {
-        navigate("/profile");
-      }, 2000);
+  
+      // ✅ Navigate to the newly created listing's page
+      navigate(`/listing/${createdListing._id}`);
     } catch (error) {
       setLoading(false);
       setError(
@@ -168,6 +168,8 @@ function CreateListing() {
       );
     }
   };
+  
+  
 
   return (
     <main className="p-4 max-w-6xl mx-auto">
