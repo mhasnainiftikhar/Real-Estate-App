@@ -130,7 +130,7 @@ function SignUp() {
             >
               {loading ? "Signing Up..." : "Sign Up"}
             </button>
-            <OAuth/>
+            <OAuth />
           </div>
         </form>
 

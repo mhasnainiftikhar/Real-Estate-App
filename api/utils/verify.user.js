@@ -1,31 +1,29 @@
 import jwt from 'jsonwebtoken';
-import { errorHandler } from '../utils/error.js';
+import { errorHandler } from './error.js';
 
 export const verifyToken = (req, res, next) => {
-  // Ensure cookies are parsed
-  const cookies = req.cookies;
-  if (!cookies) {
-    console.log('⚠️ No cookies found on the request.');
-    return next(errorHandler(400, 'Cookies are missing. Please enable cookies and try again.'));
-  }
+  // Check for token in cookies first (default method)
+  const cookieToken = req.cookies.access_token;
+  
+  // Check for token in Authorization header (for API calls from frontend)
+  const authHeader = req.headers.authorization;
+  const headerToken = authHeader && authHeader.startsWith('Bearer ') 
+    ? authHeader.split(' ')[1] 
+    : null;
+  
+  // Use whichever token is available
+  const token = cookieToken || headerToken;
 
-  // Debug logging
-  console.log('✅ Cookies received:', cookies);
-
-  const token = cookies.access_token;
   if (!token) {
-    return next(errorHandler(401, 'You are not authenticated. Please log in to access this resource.'));
+    return next(errorHandler(401, 'You are not authenticated'));
   }
 
-  // Verify the token
-  jwt.verify(token, process.env.JWT_SECRET, (err, decodedUser) => {
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) {
-      console.error('❌ JWT verification error:', err);
-      return next(errorHandler(403, 'Invalid or expired token. Please log in again.'));
+      return next(errorHandler(403, 'Token is not valid'));
     }
-
-    req.user = decodedUser; // Attach user info to the request
-    console.log('✅ Decoded user from token:', decodedUser);
+    
+    req.user = user;
     next();
   });
 };
